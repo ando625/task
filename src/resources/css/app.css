@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+@theme{
+    --color-main-navy: #21334a;      /* 濃いネイビー（ヘッダー用） */
+  --color-card-blue: #c7e9f7;    /* 水色（カード背景用） */
+  --color-bg-light-gray: #f1f5f9;  /* 薄いグレー（全体の背景用） */
+  --color-card-dark-gray: #4a5568; /* 濃いグレー（文字用） */
+}

@@ -1,0 +1,11 @@
+# .gitignore
+# MySQL data（絶対にGit管理しない）
+docker/mysql/data
+
+# Laravel
+src/vendor
+src/node_modules
+src/.env
+
+# OS系
+.DS_Store

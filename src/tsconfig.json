@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "module": "ESNext", // Viteと一番仲が良い設定
+        "moduleResolution": "bundler", // ファイルを探すルールを現代風に
+        "target": "ESNext",
+        "jsx": "react-jsx",
+        "strict": true,
+        "skipLibCheck": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["resources/js/*"] // これで @/Components/... と書ける
+        }
+    },
+    "include": ["resources/js/**/*"]
+}
