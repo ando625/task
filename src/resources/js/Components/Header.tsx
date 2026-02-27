@@ -5,10 +5,12 @@ import React from "react";
 type Props = {
     onSwitchLogin: () => void;
     onSwitchRegister: () => void;
-    isLogin: boolean;
+    onLogout: () => void;
+    isLogin: boolean;          //フォーム切り替え
+    isAuthenticated: boolean;  //ログイン済みかどうか
 };
 
-export default function Header ({onSwitchLogin, onSwitchRegister,isLogin}:Props) {
+export default function Header ({onSwitchLogin, onSwitchRegister,isLogin, onLogout,isAuthenticated}:Props) {
     return (
         <header className="bg-main-navy text-white p-4 pr-10 shadow-md flex justify-between items-center">
             <div className="flex items-center gap-2">
@@ -19,12 +21,22 @@ export default function Header ({onSwitchLogin, onSwitchRegister,isLogin}:Props)
             </div>
 
             <div className="mr-5">
-                {isLogin ? (
+                {isAuthenticated ? (
+                    // ログイン済みなら
+                    <button
+                        onClick={onLogout}
+                        className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded transition-colors"
+                    >
+                        ログアウト
+                    </button>
+                ) : (
+                    isLogin ? (
                     <button onClick={onSwitchRegister}>
                         新規会員登録はこちら
                     </button>
                 ) : (
                     <button onClick={onSwitchLogin}>ログイン画面へ</button>
+                )
                 )}
             </div>
         </header>

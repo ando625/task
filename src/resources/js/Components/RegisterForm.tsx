@@ -20,9 +20,10 @@ type ValidationErrors = Record<string, string[]>;
 
 type Props = {
     onSwitch: () => void;
+    onRegisterSuccess: () => void;
 };
 
-export default function RegisterForm({onSwitch}:Props) {
+export default function RegisterForm({onSwitch, onRegisterSuccess}:Props) {
     // フォーム全体の状態（魔法のメモ帳）
     const [formData, setFormData] = useState<RegisterFormData>({
         name: "",
@@ -50,12 +51,11 @@ export default function RegisterForm({onSwitch}:Props) {
         setErrors({});
 
         try {
-            const response = await axios.post<AuthResponse>(
-                "/api/register",
-                formData,
-            );
+            await axios.get("/sanctum/csrf-cookie");
 
-            alert("登録成功！トークン:" + response.data.access_token);
+            await axios.post("/api/register", formData);
+
+            alert("登録成功");
 
             // --- メモ帳をリセット ---
             setFormData({
@@ -64,6 +64,7 @@ export default function RegisterForm({onSwitch}:Props) {
                 password: "",
                 password_confirmation: "",
             });
+            onRegisterSuccess();
         } catch (error) {
             // 2. 「もしこれが Axios のエラーなら」という魔法の鑑定
             if (axios.isAxiosError(error)) {

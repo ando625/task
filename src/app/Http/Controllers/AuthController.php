@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\LoginRequest;
+use Illuminate\Support\Facades\Auth; 
 
 
 class AuthController extends Controller
@@ -23,13 +24,13 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        // Sanctumを使ってトークンを発行
-        $token = $user->createToken('auth_token')->plainTextToken;
+
+        Auth::login($user);
 
         // Reactに成功をJSONで返す
         return response()->json([
-            'access_token' => $token,  //access_tokenというラベル名をつける
-            'token_type' => 'Bearer',  //このBearer方式で
+            'message' => 'ユーザー登録に成功しました',
+            'user' => $user
         ]);
     }
 
@@ -40,20 +41,27 @@ class AuthController extends Controller
 
         $user = User::where('email', $validated['email'])->first();
 
-        // 認証チェック　ユーザーが見つからないまたはパスワードが一致しない
-        if(!$user || !Hash::check($validated['password'], $user->password)){
+        if(Auth::attempt($validated)){
+            $request->session()->regenerate();
+
             return response()->json([
-                'message' => 'ログインに失敗しました。メールアドレスかパスワードが正しくありません。'
-            ],401);
+                'message' => 'ログイン成功',
+                'user' => Auth::user(),
+            ]);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        return response()->json(['message' => 'ログインに失敗しました'], 401);
 
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user,
-        ]);
+    }
+
+    public function Logout(Request $request)
+    {
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->json(['message' => 'ログアウトしました']);
 
     }
 }

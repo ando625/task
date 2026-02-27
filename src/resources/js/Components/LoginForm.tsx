@@ -23,10 +23,11 @@ type ValidationErrors = Record<string, string[]>
 
 type Props = {
     onSwitch: () => void;
+    onLoginSuccess: () => void;
 };
 
 
-export default function LoginForm({ onSwitch }: Props) {
+export default function LoginForm({ onSwitch, onLoginSuccess }: Props) {
 
     const [formData, setFormData] = useState<LoginFormData>({
         email: "",
@@ -48,24 +49,20 @@ export default function LoginForm({ onSwitch }: Props) {
 
 
         try {
-            const response = await axios.post<AuthResponse>(
-                "/api/login",
-                formData,
-                { headers: { Accept: "application/json" } },
-            );
+            // 最初にクッキーをもらう
+            await axios.get("/sanctum/csrf-cookie");
 
-            // トークンを保存
-            localStorage.setItem("access_token", response.data.access_token);
+            // ログイン実行
+            await axios.post("/api/login", formData);
 
-            console.log("ログイン成功", response.data.user);
+
+            console.log("ログイン成功");
 
             // 成功した時だけリセット
             setFormData({ email: "", password: "" });
 
             // 画面を切り替える
-
-
-
+            onLoginSuccess();
 
         } catch (error) {
             // 2. 「もしこれが Axios のエラーなら」という魔法の鑑定
