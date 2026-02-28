@@ -2,18 +2,73 @@
 
 import React from "react";
 import TaskColumn from "./TaskColumen";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TaskCard from "./TaskCard";
-import { Task } from "./TaskCard";
+import { Task, User } from "./TaskCard";
 import TaskModal from "./TaskModal";
+import axios from "axios";
 
 export default function Dashboard() {
+
+    // 自分の情報を入れる箱を追加
+    const [me, setMe] = useState<User | null>(null);
+
 
     // 開閉用のスイッチ
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     //編集用メモ帳 中身はタスクデータか新規作成の空(null)か
     const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+    // サーバーから届くタスクを並べるための箱
+    const [tasks, setTasks] = useState<Task[]>([]);
+
+    // タスクを持ってくる関数
+    const fetchTasks = async () => {
+        try {
+            const [taskRes, meRes] = await Promise.all([
+                axios.get('/api/tasks'),
+                axios.get('/api/me')
+            ]);                                               //サーバーにリクエストtaskちょうだい
+            setTasks(taskRes. data);                          //事前作った箱に持ってきたdataをセット
+            setMe(meRes.data);
+
+        } catch (error) {
+            console.error("タスクの取得に失敗しました", error);
+        }
+    };
+
+
+    // 画面が表示されたタイミングでこの処理を実行(useEffect) task一覧をサーバから取ってくる 後の更新はその処理の中でfetchTasksしてその場所だけ変えるように指示する,基本画面一回取ってくるだけの処理がこれ 
+    useEffect(() => {
+        fetchTasks();
+    }, []);
+
+    const currentUserId = me?.id;
+
+    //編集ボタンの処理 新規ではなく編集でのモーダルを開くため
+    const handleEditClick = (task: Task) => {
+        setEditingTask(task);  //編集データを準備して↓モーダルを開く
+        setIsModalOpen(true);
+    };
+
+    //削除の処理
+    const handleDeleteTask = async (id: number) => {
+        //間違えて消さないように確認を入れる
+        if (!window.confirm("タスクを削除しますか?")) return;
+
+        try {
+            // サーバーに削除依頼
+            await axios.delete(`/api/tasks/${id}`);
+            
+            //削除後最新のリスト再取得
+            await fetchTasks();
+
+            alert("削除しました");
+        } catch (error) {
+            console.error("削除に失敗しました", error);
+        }
+    };
 
 
     return (
@@ -25,7 +80,10 @@ export default function Dashboard() {
                     自分のタスク
                 </h2>
                 <button
-                    onClick={() => { setEditingTask(null); setIsModalOpen(true); }}
+                    onClick={() => {
+                        setEditingTask(null);
+                        setIsModalOpen(true);
+                    }}
                     className="bg-main-navy text-white px-4 py-2 rounded-lg hover:opacity-90 flex items-center gap-2"
                 >
                     <span className="text-xl">+</span>
@@ -35,10 +93,44 @@ export default function Dashboard() {
 
             {/* 自分のタスク */}
             <div className="grid grid-cols-4 gap-0 p-6 flex-1 bg-white">
-                <TaskColumn title="やること" />
-                <TaskColumn title="進行中" />
-                <TaskColumn title="レビュー/確認待ち" />
-                <TaskColumn title="完了" />
+                <TaskColumn
+                    title="やること"
+                    tasks={tasks.filter(
+                        (t) =>
+                            t.status === "todo" && t.user_id === currentUserId,
+                    )}
+                    onEditTask={handleEditClick}
+                    onDeleteTask={handleDeleteTask}
+                />{" "}
+                {/*filterでstatusがtodoのだけ持ってこれるように*/}
+                <TaskColumn
+                    title="進行中"
+                    tasks={tasks.filter(
+                        (t) =>
+                            t.status === "doing" && t.user_id === currentUserId,
+                    )}
+                    onEditTask={handleEditClick}
+                    onDeleteTask={handleDeleteTask}
+                />
+                <TaskColumn
+                    title="レビュー/確認待ち"
+                    tasks={tasks.filter(
+                        (t) =>
+                            t.status === "review" &&
+                            t.user_id === currentUserId,
+                    )}
+                    onEditTask={handleEditClick}
+                    onDeleteTask={handleDeleteTask}
+                />
+                <TaskColumn
+                    title="完了"
+                    tasks={tasks.filter(
+                        (t) =>
+                            t.status === "done" && t.user_id === currentUserId,
+                    )}
+                    onEditTask={handleEditClick}
+                    onDeleteTask={handleDeleteTask}
+                />
             </div>
 
             {/* チームタスクエリア全体を囲うグループ */}
@@ -50,10 +142,38 @@ export default function Dashboard() {
 
                 {/* 4つの列：ここも背景グレー */}
                 <div className="grid grid-cols-4 gap-0 p-6 flex-1">
-                    <TaskColumn isTeamArea={true} />
-                    <TaskColumn isTeamArea={true} />
-                    <TaskColumn isTeamArea={true} />
-                    <TaskColumn isTeamArea={true} />
+                    <TaskColumn
+                        isTeamArea={true}
+                        tasks={tasks.filter(
+                            (t) =>
+                                t.status === "todo" &&
+                                t.user_id !== currentUserId,
+                        )}
+                    />
+                    <TaskColumn
+                        isTeamArea={true}
+                        tasks={tasks.filter(
+                            (t) =>
+                                t.status === "doing" &&
+                                t.user_id !== currentUserId,
+                        )}
+                    />
+                    <TaskColumn
+                        isTeamArea={true}
+                        tasks={tasks.filter(
+                            (t) =>
+                                t.status === "review" &&
+                                t.user_id !== currentUserId,
+                        )}
+                    />
+                    <TaskColumn
+                        isTeamArea={true}
+                        tasks={tasks.filter(
+                            (t) =>
+                                t.status === "done" &&
+                                t.user_id !== currentUserId,
+                        )}
+                    />
                 </div>
             </div>
 
@@ -62,6 +182,7 @@ export default function Dashboard() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 task={editingTask}
+                fetchTasks={fetchTasks}
             />
         </div>
     );

@@ -15,6 +15,11 @@ Route::middleware('auth:sanctum')->group(function(){
 
     Route::post('/logout', [AuthController::class, 'Logout']);
 
+    Route::get('/me', [AuthController::class, 'me']);
+
+    // タスク一覧表示
+    Route::get('/tasks', [TaskController::class, 'index']);
+
 
     // タスク新規作成
     Route::post('/tasks', [TaskController::class, 'taskStore']);
@@ -23,6 +28,6 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::put('/tasks/{id}', [TaskController::class, 'taskUpdate']);
 
     //タスク削除
-    Route::delete('/task/{id}', [TaskController::class, 'taskDestroy']);
+    Route::delete('/tasks/{id}', [TaskController::class, 'taskDestroy']);
 
 });

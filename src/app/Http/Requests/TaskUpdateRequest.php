@@ -24,7 +24,7 @@ class TaskUpdateRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:50'],
             'description' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'in:todo,doing,review,done'],
+            'status' => ['required'],
         ];
     }
 
@@ -34,7 +34,6 @@ class TaskUpdateRequest extends FormRequest
             'title.required' => "タイトルを入力してください",
             'title.max' => "タイトルは50文字以内で入力してください",
             'description.max' => "説明は255文字以内で入力してください",
-            'status.required' =>  "ステータスを選択してください",
         ];
     }
 }

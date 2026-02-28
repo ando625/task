@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import TaskCard from "./TaskCard";
 import { FormEvent, useState } from "react";
 import axios from "axios";
@@ -12,17 +12,42 @@ type Props = {
     isOpen: boolean;
     onClose: () => void;
     task?: Task | null;
+    fetchTasks: () => Promise<void>;
 };
 
-export default function TaskModal({ isOpen, onClose, task }: Props) {
-    if (!isOpen) return null;
+type ValidationError = Record<string, string[]>;
 
-    const [title, setTitle] = useState(task?.title || "");
-    const [description, setDescription] = useState(task?.description || "");
+export default function TaskModal({ isOpen, onClose, task, fetchTasks }: Props) {
+
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [status, setStatus] = useState<Task['status']>('todo');
+    const [errors, setErrors] = useState<ValidationError>({});
+
+
+
+    useEffect(() => {
+        if (isOpen) {
+            if (task) {
+                //編集モード：選んだタスクの情報を入れる
+                setTitle(task.title);
+                setDescription(task.description || "");
+                setStatus(task.status);  //編集時は今のステータスをセット
+            } else {
+                //新規作成モード：からにする
+                setTitle("");
+                setDescription("");
+                setStatus('todo');  //新規作成はtodoスタート
+            }
+        }
+    }, [task, isOpen]);
+
+    if (!isOpen) return null;
 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setErrors({});
 
         try {
             await axios.get('/sanctum/csrf-cookie');
@@ -30,7 +55,7 @@ export default function TaskModal({ isOpen, onClose, task }: Props) {
             const data = {
                 title,
                 description,
-                status: task ? task.status : 'todo',
+                status: status,
             };
 
             if (task) {
@@ -39,9 +64,15 @@ export default function TaskModal({ isOpen, onClose, task }: Props) {
                 await axios.post('/api/tasks', data);
             }
 
+            //タスクを取得 APIのデータだけ更新する部分
+            await fetchTasks();
+
             onClose();
-        } catch (error) {
-            console.error("保存に失敗しました", error);
+        } catch (error:any) {
+            if (error.response?.status === 422) {
+                //laravelのバリデーションセット
+                setErrors(error.response.data.errors as ValidationError);
+            }
         }
     };
 
@@ -52,7 +83,7 @@ export default function TaskModal({ isOpen, onClose, task }: Props) {
         >
             {/* モーダル本体 */}
             <div
-                className="bg-white w-full max-w-xl rounded-2xl border border-gray-100 p-8 shadow-2xl"
+                className="bg-white w-full max-w-3xl rounded-2xl border border-gray-100 p-8 shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* モーダルを編集か新規制作かを切り替える */}
@@ -72,6 +103,11 @@ export default function TaskModal({ isOpen, onClose, task }: Props) {
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                         />
+                        {errors.title && (
+                            <p className="text-red-500 text-sm mt-0.5 font-bold">
+                                {errors.title[0]}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -84,6 +120,35 @@ export default function TaskModal({ isOpen, onClose, task }: Props) {
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                         />
+                    </div>
+
+                    {/* ステータスボタン */}
+                    <div>
+                        <label className="block text-gray-600 text-sm font-bold mb-2">
+                            進捗状況
+                        </label>
+                        <div className="grid grid-cols-4 gap-3">
+                            {(["todo", "doing", "review", "done"] as const).map(
+                                (s) => (
+                                    <button
+                                        key={s}
+                                        type="button"
+                                        onClick={() => setStatus(s)}
+                                        className={`py-3 px-2 rounded-xl border font-bold transition-all ${
+                                            status === s
+                                                ? "bg-blue-600 text-white border-blue-600 shadow-lg scale-105"
+                                                : "bg-white text-gray-400 border-gray-200 hover:bg-gray-50"
+                                        }`}
+                                    >
+                                        {s === "todo" && "やること"}
+                                        {s === "doing" && "進行中"}
+                                        {s === "review" && "確認待ち"}
+                                        {s === "done" && "完了"}
+                                    </button>
+                                ),
+                            )}
+
+                        </div>
                     </div>
 
                     <div className="flex justify-end items-center gap-4 mt-10">

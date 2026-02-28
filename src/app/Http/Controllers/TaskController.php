@@ -11,6 +11,15 @@ use App\Models\User;
 
 class TaskController extends Controller
 {
+    public function index(Request $request)
+    {
+        $tasks = Task::with('user')->get();
+
+        return response()->json($tasks);
+
+    }
+
+
     public function taskStore(TaskStoreRequest $request)
     {
 
@@ -44,6 +53,20 @@ class TaskController extends Controller
         ]);
 
         return response()->json($task);
+
+    }
+
+    public function taskDestroy(Request $request,$id)
+    {
+        $task = auth()->user()->tasks()->find($id);
+
+        if(!$task){
+            return response()->json(['message' => 'タスクが見つかりません']);
+        }
+
+        $task->delete();
+
+        return response()->json(['message' => 'タスクを削除しました']);
 
     }
 }
