@@ -55,7 +55,6 @@ export default function LoginForm({ onSwitch, onLoginSuccess }: Props) {
             // ログイン実行
             await axios.post("/api/login", formData);
 
-
             console.log("ログイン成功");
 
             // 成功した時だけリセット
@@ -65,16 +64,22 @@ export default function LoginForm({ onSwitch, onLoginSuccess }: Props) {
             onLoginSuccess();
 
         } catch (error) {
-            // 2. 「もしこれが Axios のエラーなら」という魔法の鑑定
+            //  Axios のエラー?
             if (axios.isAxiosError(error)) {
-                // 3. かつ、サーバーから 422 (バリデーションエラー) が返ってきたなら
+                //かつ、サーバーから 422 (バリデーションエラー入力欄がから) が返ってきたなら
                 if (error.response?.status === 422) {
-                    // error.response.data.errors の型を確定させてメモ帳に入れる
-                    setErrors(
-                        error.response.data.errors as Record<string, string[]>,
-                    );
-                } else {
-                    alert("サーバー側でエラーが発生しました");
+                    // メールを入力してくださいなどのエラメッセージをそのままReactで表示
+                    setErrors(error.response.data.errors);
+                } else if
+                    //４０１の確認はパスワードが違うかどうかの確認
+                    (error.response?.status === 401) {
+                    const loginErrorMessage =
+                        "メールアドレスまたはパスワードが正しくありません。";
+                    setErrors({
+                        email: [loginErrorMessage],
+                        password: [loginErrorMessage],
+                    });
+
                 }
             } else {
                 // 4. 通信以前の問題（コードの間違いなど）

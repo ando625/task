@@ -64,4 +64,10 @@ class AuthController extends Controller
         return response()->json(['message' => 'ログアウトしました']);
 
     }
+
+    public function me()
+    {
+        // 今ログインしてるユーザーを送る
+        return response()->json(auth()->user());
+    }
 }
