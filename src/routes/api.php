@@ -25,9 +25,9 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::post('/tasks', [TaskController::class, 'taskStore']);
 
     // タスク更新
-    Route::put('/tasks/{id}', [TaskController::class, 'taskUpdate']);
+    Route::put('/tasks/{task}', [TaskController::class, 'taskUpdate']);
 
     //タスク削除
-    Route::delete('/tasks/{id}', [TaskController::class, 'taskDestroy']);
+    Route::delete('/tasks/{task}', [TaskController::class, 'taskDestroy']);
 
 });

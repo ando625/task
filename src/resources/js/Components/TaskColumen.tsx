@@ -25,7 +25,7 @@ export default function TaskColumn({title, tasks,isTeamArea, onEditTask, onDelet
         `}
         >
                 {title && (
-                    <h3 className="font-bold text-gray-700 mb-4 px-2 border-b-2 border-main-navy/20 pb-2 text-center">
+                    <h3 className="font-bold text-gray-700 mb-4 px-2 border-b-2 border-main-navy/20 pb-2 text-center text-lg">
                         {title}
                     </h3>
                 )}

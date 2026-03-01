@@ -72,6 +72,11 @@ export default function TaskModal({ isOpen, onClose, task, fetchTasks }: Props) 
             if (error.response?.status === 422) {
                 //laravelのバリデーションセット
                 setErrors(error.response.data.errors as ValidationError);
+            } else if (error.response?.status === 403) {
+                alert("⚠️編集権限がありません。自分のタスクのみ更新可能です。");
+                onClose();
+            } else {
+                alert("保存中にエラーが発生");
             }
         }
     };
@@ -123,13 +128,15 @@ export default function TaskModal({ isOpen, onClose, task, fetchTasks }: Props) 
                     </div>
 
                     {/* ステータスボタン */}
-                    <div>
-                        <label className="block text-gray-600 text-sm font-bold mb-2">
-                            進捗状況
-                        </label>
-                        <div className="grid grid-cols-4 gap-3">
-                            {(["todo", "doing", "review", "done"] as const).map(
-                                (s) => (
+                    {task && (
+                        <div>
+                            <label className="block text-gray-600 text-sm font-bold mb-2">
+                                進捗状況
+                            </label>
+                            <div className="grid grid-cols-4 gap-3">
+                                {(
+                                    ["todo", "doing", "review", "done"] as const
+                                ).map((s) => (
                                     <button
                                         key={s}
                                         type="button"
@@ -145,11 +152,10 @@ export default function TaskModal({ isOpen, onClose, task, fetchTasks }: Props) 
                                         {s === "review" && "確認待ち"}
                                         {s === "done" && "完了"}
                                     </button>
-                                ),
-                            )}
-
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <div className="flex justify-end items-center gap-4 mt-10">
                         <button

@@ -31,10 +31,20 @@ class TaskFactory extends Factory
             'デプロイ作業'
         ];
 
+        $descriptions = [
+            '今日の定例までに骨子をまとめておく。',
+            '参考資料をデスクの引き出しから探して確認する。',
+            '前回の修正漏れがないか、念入りにチェックが必要。',
+            'これ終わったらチームリーダーにチャットで報告。',
+            '午後から集中して一気に片付ける予定。',
+            '細かい調整だけど、忘れると後で面倒なやつ。',
+            '資料のバックアップを忘れずに取っておく。',
+        ];
+
 
         return [
             'title' => fake()->randomElement($taskTitles),
-            'description' => fake()->sentence(3). 'に関するタスクです',
+            'description' => fake()->randomElement($descriptions),
             'status' => fake()->randomElement(['todo', 'doing', 'review', 'done']),
             'user_id' => \App\Models\User::factory(),
 

@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\LoginRequest;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 
 
 class AuthController extends Controller
@@ -37,11 +37,23 @@ class AuthController extends Controller
     // ログイン
     public function login(LoginRequest $request)
     {
-        $validated = $request->validated();
+        //validated() で全データ（email, password, remember）を取得
+        $data = $request->validated();
 
-        $user = User::where('email', $validated['email'])->first();
+        // ログイン認証に使うのは email と password だけ
+        // $data から email と password だけを抜き出す
+        $credentials = [
+            'email'    => $data['email'],
+            'password' => $data['password'],
+        ];
 
-        if(Auth::attempt($validated)){
+        // remember は「認証の第2引数」として使う（DBの検索には使わない）
+        $remember = $request->boolean('remember');
+
+        // ログイン試行
+        // $credentials (emailとpassword) だけを使ってユーザーを探し、
+        // 第2引数の $remember で「ログイン保持するかどうか」を決めます
+        if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
             return response()->json([
@@ -51,9 +63,10 @@ class AuthController extends Controller
         }
 
         return response()->json(['message' => 'ログインに失敗しました'], 401);
-
     }
 
+
+    // ログアウト
     public function Logout(Request $request)
     {
         Auth::guard('web')->logout();
@@ -65,6 +78,7 @@ class AuthController extends Controller
 
     }
 
+    // ログイン中の自分のを取得
     public function me()
     {
         // 今ログインしてるユーザーを送る

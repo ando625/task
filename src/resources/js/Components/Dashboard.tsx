@@ -65,8 +65,13 @@ export default function Dashboard() {
             await fetchTasks();
 
             alert("削除しました");
-        } catch (error) {
-            console.error("削除に失敗しました", error);
+        } catch (error: any) {
+            if (error.response?.status === 403) {
+                alert("⚠️これはあなたのタスクではないため、削除できません");
+            } else {
+                console.error("削除に失敗しました", error);
+                alert("削除に失敗しました");
+            }
         }
     };
 
@@ -84,7 +89,7 @@ export default function Dashboard() {
                         setEditingTask(null);
                         setIsModalOpen(true);
                     }}
-                    className="bg-main-navy text-white px-4 py-2 rounded-lg hover:opacity-90 flex items-center gap-2"
+                    className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:opacity-90 flex items-center gap-2"
                 >
                     <span className="text-xl">+</span>
                     タスク作成
@@ -134,14 +139,14 @@ export default function Dashboard() {
             </div>
 
             {/* チームタスクエリア全体を囲うグループ */}
-            <div className="flex flex-col bg-slate-100 flex-1">
+            <div className="flex flex-col bg-slate-100 flex-1 pt-6">
                 {/* 見出し：背景グレーの中に含める */}
-                <div className="px-6 pt-6">
-                    <h3 className="font-bold text-gray-600">チームタスク</h3>
+                <div className="px-6 pt-6 pb-1">
+                    <h3 className="font-bold text-gray-600 text-lg">チームタスク</h3>
                 </div>
 
                 {/* 4つの列：ここも背景グレー */}
-                <div className="grid grid-cols-4 gap-0 p-6 flex-1">
+                <div className="grid grid-cols-4 gap-0 pb-2 flex-1">
                     <TaskColumn
                         isTeamArea={true}
                         tasks={tasks.filter(

@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import axios from "axios";
 import InputField from "./InputField";
 import SubmitButton from "./SubmitButton";
+import { User } from "./TaskCard";
 
 // 【一時的な避難所】外部ファイルを使わず、ここに直接書く！
 export interface RegisterFormData {
@@ -20,7 +21,7 @@ type ValidationErrors = Record<string, string[]>;
 
 type Props = {
     onSwitch: () => void;
-    onRegisterSuccess: () => void;
+    onRegisterSuccess: (user:User) => void;
 };
 
 export default function RegisterForm({onSwitch, onRegisterSuccess}:Props) {
@@ -53,7 +54,7 @@ export default function RegisterForm({onSwitch, onRegisterSuccess}:Props) {
         try {
             await axios.get("/sanctum/csrf-cookie");
 
-            await axios.post("/api/register", formData);
+            const response = await axios.post("/api/register", formData);
 
             alert("登録成功");
 
@@ -64,7 +65,7 @@ export default function RegisterForm({onSwitch, onRegisterSuccess}:Props) {
                 password: "",
                 password_confirmation: "",
             });
-            onRegisterSuccess();
+            onRegisterSuccess(response.data.user);
         } catch (error) {
             // 2. 「もしこれが Axios のエラーなら」という魔法の鑑定
             if (axios.isAxiosError(error)) {

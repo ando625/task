@@ -7,10 +7,13 @@ use App\Http\Requests\TaskStoreRequest;
 use App\Http\Requests\TaskUpdateRequest;
 use App\Models\Task;
 use App\Models\User;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 
 class TaskController extends Controller
 {
+    use AuthorizesRequests;
+
     public function index(Request $request)
     {
         $tasks = Task::with('user')->get();
@@ -35,15 +38,12 @@ class TaskController extends Controller
 
 
 
-    public function taskUpdate(TaskUpdateRequest $request, $id)
+    public function taskUpdate(TaskUpdateRequest $request, Task $task)
     {
+        // Policyでチェック
+        $this->authorize('update', $task);
+
         $validated = $request->validated();
-
-        $task = auth()->user()->tasks()->find($id);
-
-        if(!$task){
-            return response()->json(['message' => 'タスクが見つかりません']);
-        }
 
 
         $task->update([
@@ -56,13 +56,10 @@ class TaskController extends Controller
 
     }
 
-    public function taskDestroy(Request $request,$id)
+    public function taskDestroy(Request $request,Task $task)
     {
-        $task = auth()->user()->tasks()->find($id);
+        $this->authorize('delete',$task);
 
-        if(!$task){
-            return response()->json(['message' => 'タスクが見つかりません']);
-        }
 
         $task->delete();
 
